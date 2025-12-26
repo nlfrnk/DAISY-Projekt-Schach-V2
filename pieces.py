@@ -1,5 +1,25 @@
 import numpy as np
 
+def map_piece_name(piece):
+    if piece is None:
+        return "<empty>"
+
+    c = None
+    if isinstance(piece, Pawn):
+        c = "Pawn"
+    if isinstance(piece, Rook):
+        c = "Rook"
+    if isinstance(piece, Knight):
+        c = "Knight"
+    if isinstance(piece, Bishop):
+        c = "Bishop"
+    if isinstance(piece, Queen):
+        c = "Queen"
+    if isinstance(piece, King):
+        c = "King"
+
+    return c
+
 class Piece:
     """
     Base class for pieces on the board. 
@@ -61,6 +81,29 @@ class Piece:
         :return: Return numerical score between -infinity and +infinity. Greater values indicate better evaluation result (more favorable).
         """
         # TODO: Implement
+        score = 0.0
+
+        pieces_score = {
+           "Pawn": 1,
+           "Rook": 5,
+           "Knight": 3,
+           "Bishop": 3,
+           "Queen": 9,
+           "King": 100000
+        }
+
+        for piece in self.board.iterate_cells_with_pieces(self.white):
+            piece_full_name = map_piece_name(piece)
+            score += pieces_score[piece_full_name]
+
+            reachable_cells = piece.get_reachable_cells()
+            score += len(reachable_cells) / 4
+
+            for cell in reachable_cells:
+                if self.board.piece_can_hit_on_cell(self, cell):
+                    score += 0.5
+
+        return score
 
     def get_valid_cells(self):
         """
@@ -85,6 +128,39 @@ class Piece:
         :return: Return True 
         """
         # TODO: Implement
+
+        reachable_cells = self.get_reachable_cells()
+        valid_cells = []
+
+        original_cell = self.cell
+        piece_hit = None
+
+        for cell in reachable_cells:
+            
+            if self.board.piece_can_hit_on_cell(self, cell):
+                piece_hit = self.board.get_cell(cell)
+
+            self.board.set_cell(cell, self)
+
+            
+
+            king_checked = self.board.is_king_check(self.white)
+
+            if not king_checked:
+                valid_cells.append(cell)
+            
+
+            self.board.set_cell(original_cell, self)
+
+            if piece_hit is not None:
+                self.board.set_cell(piece_hit.cell, piece_hit)
+            
+            piece_hit = None
+
+
+
+        return valid_cells
+    
 
 class Pawn(Piece):  # Bauer
     def __init__(self, board, white):
@@ -111,7 +187,37 @@ class Pawn(Piece):  # Bauer
         :return: A list of reachable cells this pawn could move into.
         """
         # TODO: Implement a method that returns all cells this piece can enter in its next move
+        reachable_cells = []
+        row, col = self.cell
 
+        #Laufen
+        if self.white == True:
+            start_row = 1
+            direction = 1
+        else:
+            start_row = 6
+            direction = -1
+
+        new_cell = (row + direction, col)
+        new_cell_2 = (row + (direction * 2), col)
+
+        if self.can_enter_cell(new_cell) and not self.can_hit_on_cell(new_cell):
+            reachable_cells.append(new_cell)
+
+            if int(row) is int(start_row):
+                if self.can_enter_cell(new_cell_2) and not self.can_hit_on_cell(new_cell_2):
+                    reachable_cells.append(new_cell_2)
+
+        #Schlagen
+        directions = [-1, 1]
+
+        for i in directions:
+            hit_cell = (row + direction, col + i)
+
+            if self.can_hit_on_cell(hit_cell) is True:
+                reachable_cells.append(hit_cell)
+
+        return reachable_cells
 
 class Rook(Piece):  # Turm
     def __init__(self, board, white):
@@ -134,7 +240,29 @@ class Rook(Piece):  # Turm
         :return: A list of reachable cells this rook could move into.
         """
         # TODO: Implement a method that returns all cells this piece can enter in its next move
+        reachable_cells = []
 
+        row, col = self.cell
+
+        directions = [(-1, 0), (0, -1), (-1, 0), (0, 1), (1, 0)]
+
+        for direction_row, direction_col in directions:
+            new_row = row + direction_row
+            new_col = col + direction_col
+            new_cell = (new_row, new_col)
+           
+            while self.can_enter_cell(new_cell):
+                
+                reachable_cells.append(new_cell)
+                if self.can_hit_on_cell(new_cell) is True:
+                    break
+                
+                new_row += direction_row
+                new_col += direction_col
+                new_cell = (new_row, new_col)
+
+        return reachable_cells
+    
 
 class Knight(Piece):  # Springer
     def __init__(self, board, white):
@@ -157,7 +285,17 @@ class Knight(Piece):  # Springer
         :return: A list of reachable cells this knight could move into.
         """
         # TODO: Implement a method that returns all cells this piece can enter in its next move
+        reachable_cells = []
 
+        row, col = self.cell
+        
+        possible_cells = [(row - 2, col - 1), (row - 2, col + 1), (row + 2, col - 1), (row + 2, col + 1), (row - 1, col - 2), (row + 1, col - 2), (row - 1, col + 2), (row + 1, col + 2)]
+
+        for cell in possible_cells:
+            if self.can_enter_cell(cell):
+                reachable_cells.append(cell)
+
+        return reachable_cells
 
 class Bishop(Piece):  # Läufer
     def __init__(self, board, white):
@@ -180,6 +318,27 @@ class Bishop(Piece):  # Läufer
         """
         # TODO: Implement a method that returns all cells this piece can enter in its next move
 
+        reachable_cells = []
+        row, col = self.cell
+
+        directions = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
+
+        for direction_row, direction_col in directions:
+            new_row = row + direction_row
+            new_col = col + direction_col
+            new_cell = (new_row, new_col)
+           
+            while self.can_enter_cell(new_cell):
+                
+                reachable_cells.append(new_cell)
+                if self.can_hit_on_cell(new_cell) is True:
+                    break
+                
+                new_row += direction_row
+                new_col += direction_col
+                new_cell = (new_row, new_col)
+
+        return reachable_cells
 
 class Queen(Piece):  # Königin
     def __init__(self, board, white):
@@ -203,6 +362,27 @@ class Queen(Piece):  # Königin
         """
         # TODO: Implement a method that returns all cells this piece can enter in its next move
 
+        reachable_cells = []
+        row, col = self.cell
+
+        directions = [(-1, -1), (-1, 1), (1, -1), (1, 1), (-1, 0), (0, -1), (-1, 0), (0, 1), (1, 0)]
+
+        for direction_row, direction_col in directions:
+            new_row = row + direction_row
+            new_col = col + direction_col
+            new_cell = (new_row, new_col)
+           
+            while self.can_enter_cell(new_cell):
+                
+                reachable_cells.append(new_cell)
+                if self.can_hit_on_cell(new_cell) is True:
+                    break
+                
+                new_row += direction_row
+                new_col += direction_col
+                new_cell = (new_row, new_col)
+
+        return reachable_cells
 
 class King(Piece):  # König
     def __init__(self, board, white):
@@ -224,3 +404,14 @@ class King(Piece):  # König
         :return: A list of reachable cells this king could move into.
         """
         # TODO: Implement a method that returns all cells this piece can enter in its next move
+        reachable_cells = []
+
+        row, col = self.cell
+
+        possible_cells = [(row - 1, col - 1), (row - 1, col), (row - 1, col + 1), (row, col - 1), (row, col + 1), (row + 1, col - 1), (row + 1, col), (row + 1, col + 1)]
+
+        for cell in possible_cells:
+            if self.can_enter_cell(cell):
+                reachable_cells.append(cell)
+        
+        return reachable_cells

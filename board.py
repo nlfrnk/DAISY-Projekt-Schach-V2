@@ -9,7 +9,6 @@ from util import (
     InvalidRowException,
 )
 
-
 class BoardBase:
     """
     Base Class for the Chess Board.
@@ -242,6 +241,17 @@ class Board(BoardBase):
         """
         # TODO: Implement
 
+        for row in range(8):
+            for col in range(8):
+
+                piece_on_cell = self.get_cell((row, col))
+
+                if piece_on_cell is None:
+                    continue
+
+                if white == piece_on_cell.white:
+                    yield piece_on_cell
+
     def find_king(self, white):
         """
         **TODO**: Find the king piece of given color and return that piece
@@ -256,6 +266,13 @@ class Board(BoardBase):
         """
         # TODO: Implement
 
+        for piece in self.iterate_cells_with_pieces(white):
+
+            if piece.__class__ == King:
+                return piece
+            
+        return None    
+    
     def is_king_check(self, white):
         """
         **TODO**: Evaluate if the king of given color is currently in check.
@@ -267,6 +284,19 @@ class Board(BoardBase):
         Iterate over each reachable cell and check if the kings cell is reachable. If yes, shortcut and return True right away.
         """
         # TODO: Implement
+        king = self.find_king(white)
+
+        king_cell = (np.int64(king.cell[0]), np.int64(king.cell[1]))
+        not_white = not white
+
+        for piece in self.iterate_cells_with_pieces(not_white):
+            reachable_cells = piece.get_reachable_cells()
+
+            for cell in reachable_cells:
+                if king_cell == cell:
+                    return True
+            
+        return False
 
     def evaluate(self):
         """
@@ -280,6 +310,13 @@ class Board(BoardBase):
         """
         # TODO: Implement
         score = 0.0
+
+        for white_piece in self.iterate_cells_with_pieces(True):
+            score += white_piece.evaluate()
+
+        for black_piece in self.iterate_cells_with_pieces(False):
+            score -= black_piece.evaluate()
+
         return score
 
     def is_valid_cell(self, cell):
@@ -294,6 +331,17 @@ class Board(BoardBase):
         """
         # TODO: Implement
 
+        if cell is None:
+            return False
+        
+        row, col = cell
+
+        if 0 <= row <= 7:
+            if 0 <= col <= 7:
+                return True
+            else:
+                return False
+            
     def cell_is_valid_and_empty(self, cell):
         """
         **TODO**: Check if the given cell is empty, meaning there is no piece placed on it.
@@ -304,6 +352,16 @@ class Board(BoardBase):
         """
         # TODO: Implement
 
+        if not self.is_valid_cell(cell):
+            return False
+        
+        piece_on_cell = self.get_cell(cell)
+
+        if piece_on_cell is None:
+            return True
+        else:
+            return False
+        
     def piece_can_enter_cell(self, piece, cell):
         """
         **TODO**: Check if the given piece can enter the given cell.
@@ -321,6 +379,18 @@ class Board(BoardBase):
         """
         # TODO: Implement
  
+        if not self.is_valid_cell(cell):
+            return False
+        
+        piece_on_cell = self.get_cell(cell)
+
+        if piece_on_cell is None:
+            return True
+        elif piece_on_cell.white == piece.white:
+            return False
+        else:
+            return True
+        
 
     def piece_can_hit_on_cell(self, piece, cell):
         """
@@ -338,3 +408,14 @@ class Board(BoardBase):
         the given piece "white" attribute.
         """
         # TODO: Implement
+        if not self.is_valid_cell(cell):
+            return False
+        
+        piece_on_cell = self.get_cell(cell)
+
+        if piece_on_cell is None:
+            return False
+        elif piece_on_cell.white == piece.white:
+            return False
+        else:
+            return True
