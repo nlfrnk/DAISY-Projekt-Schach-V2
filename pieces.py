@@ -161,6 +161,29 @@ class Piece:
 
         return valid_cells
     
+    def get_reachable_cells(self, directions):
+        
+        reachable_cells = []
+
+        row, col = self.cell
+
+        for direction_row, direction_col in directions:
+            new_row = row + direction_row
+            new_col = col + direction_col
+            new_cell = (new_row, new_col)
+           
+            while self.can_enter_cell(new_cell):
+                reachable_cells.append(new_cell)
+
+                if self.can_hit_on_cell(new_cell):
+                    break
+                
+                new_row += direction_row
+                new_col += direction_col
+                new_cell = (new_row, new_col)
+
+        return reachable_cells
+    
 
 class Pawn(Piece):  # Bauer
     def __init__(self, board, white):
@@ -240,28 +263,8 @@ class Rook(Piece):  # Turm
         :return: A list of reachable cells this rook could move into.
         """
         # TODO: Implement a method that returns all cells this piece can enter in its next move
-        reachable_cells = []
-
-        row, col = self.cell
-
         directions = [(-1, 0), (0, -1), (-1, 0), (0, 1), (1, 0)]
-
-        for direction_row, direction_col in directions:
-            new_row = row + direction_row
-            new_col = col + direction_col
-            new_cell = (new_row, new_col)
-           
-            while self.can_enter_cell(new_cell):
-                
-                reachable_cells.append(new_cell)
-                if self.can_hit_on_cell(new_cell) is True:
-                    break
-                
-                new_row += direction_row
-                new_col += direction_col
-                new_cell = (new_row, new_col)
-
-        return reachable_cells
+        return super().get_reachable_cells(directions)
     
 
 class Knight(Piece):  # Springer
@@ -317,28 +320,8 @@ class Bishop(Piece):  # Läufer
         :return: A list of reachable cells this bishop could move into.
         """
         # TODO: Implement a method that returns all cells this piece can enter in its next move
-
-        reachable_cells = []
-        row, col = self.cell
-
         directions = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
-
-        for direction_row, direction_col in directions:
-            new_row = row + direction_row
-            new_col = col + direction_col
-            new_cell = (new_row, new_col)
-           
-            while self.can_enter_cell(new_cell):
-                
-                reachable_cells.append(new_cell)
-                if self.can_hit_on_cell(new_cell) is True:
-                    break
-                
-                new_row += direction_row
-                new_col += direction_col
-                new_cell = (new_row, new_col)
-
-        return reachable_cells
+        return super().get_reachable_cells(directions)
 
 class Queen(Piece):  # Königin
     def __init__(self, board, white):
@@ -361,28 +344,8 @@ class Queen(Piece):  # Königin
         :return: A list of reachable cells this queen could move into.
         """
         # TODO: Implement a method that returns all cells this piece can enter in its next move
-
-        reachable_cells = []
-        row, col = self.cell
-
         directions = [(-1, -1), (-1, 1), (1, -1), (1, 1), (-1, 0), (0, -1), (-1, 0), (0, 1), (1, 0)]
-
-        for direction_row, direction_col in directions:
-            new_row = row + direction_row
-            new_col = col + direction_col
-            new_cell = (new_row, new_col)
-           
-            while self.can_enter_cell(new_cell):
-                
-                reachable_cells.append(new_cell)
-                if self.can_hit_on_cell(new_cell) is True:
-                    break
-                
-                new_row += direction_row
-                new_col += direction_col
-                new_cell = (new_row, new_col)
-
-        return reachable_cells
+        return super().get_reachable_cells(directions)
 
 class King(Piece):  # König
     def __init__(self, board, white):
