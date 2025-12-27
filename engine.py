@@ -93,8 +93,38 @@ def evaluate_all_possible_moves(board, minMaxArg, maximumNumberOfMoves = 10):
     After sorting, a maximum number of moves as provided by the respective parameter must be returned. If there are 
     more moves possible (in most situations there are), only return the top (or worst). Hint: Slice the list after sorting. 
     """
-    # TODO: Implement the method according to the above description
 
+    # TODO: Implement the method according to the above description
+    moves = []
+
+    for piece in board.iterate_cells_with_pieces(minMaxArg.playAsWhite):
+        valid_cells = piece.get_valid_cells()
+
+        for cell in valid_cells:
+
+            current_cell = piece.cell
+            hit_piece = board.get_cell(cell)
+
+            board.set_cell(cell, piece)
+            
+            print("Move: Piece:", piece, "Cell:", cell)
+
+            score = board.evaluate()
+
+            moves.append(Move(piece, cell, score))
+
+            board.set_cell(current_cell, piece)
+            board.set_cell(cell, hit_piece)
+
+    if minMaxArg.playAsWhite:
+        moves.sort(key=lambda x: x.score, reverse=True)
+    else:
+        moves.sort(key=lambda x: x.score, reverse=False)
+
+    max_moves = moves[:maximumNumberOfMoves]
+    
+    print([[map_piece_to_character(x.piece), int(x.cell[0]), int(x.cell[1]), x.score, x.piece.can_hit_on_cell(x.cell)] for x in max_moves])
+    return max_moves
 
 def minMax(board, minMaxArg):
     """
@@ -162,7 +192,50 @@ def minMax(board, minMaxArg):
     :return: Return the best move to make in the current situation.
     :rtype: :py:class:`Move`
     """
+    
     # TODO: Implement the Mini-Max algorithm
+
+    #Best 10 evaluated moves for current color
+    evaluated_moves = evaluate_all_possible_moves(board, minMaxArg)
+    score = 0.0
+
+    #No possible moves left
+    if len(evaluated_moves) is 0:
+
+        game_over = True
+
+        if minMaxArg.playAsWhite is True:
+            score = 100000
+        else:
+            score = -100000
+        
+        return Move(None, None, score)
+
+
+    if minMaxArg.depth > 1:
+
+        for move in evaluated_moves:
+
+            current_cell = move.piece.cell
+            hit_piece = board.get_cell(move.cell)
+
+            board.set_cell(move.cell, move.piece)
+
+            best_move = minMax_cached(board, minMaxArg.next())
+
+            move.score = best_move.score
+            
+            board.set_cell(current_cell, move.piece)
+            board.set_cell(move.cell, hit_piece)
+
+
+
+        if minMaxArg.playAsWhite:
+            evaluated_moves.sort(key=lambda x: x.score, reverse=True)
+        else:
+            evaluated_moves.sort(key=lambda x: x.score, reverse=False)
+        
+    return evaluated_moves[0]
 
 
 def suggest_random_move(board):
@@ -179,6 +252,23 @@ def suggest_random_move(board):
     If there are no legal moves at all, return None.
     """
     # TODO: Implement a valid random move
+    pieces = []
+
+    for piece in board.iterate_cells_with_pieces(True):
+        pieces.append(piece)
+    
+    random.shuffle(pieces)
+    
+    for random_piece in pieces:
+
+        valid_cells = random_piece.get_valid_cells()
+
+        if len(valid_cells) > 0:
+            random_cell = random.choice(valid_cells)
+            return Move(random_piece, random_cell, 0)
+        
+    return None
+    
 
 
 
