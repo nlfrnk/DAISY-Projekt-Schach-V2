@@ -270,7 +270,7 @@ class Board(BoardBase):
 
             if piece.__class__ == King:
                 return piece
-            
+        
         return None    
     
     def is_king_check(self, white):
@@ -285,6 +285,11 @@ class Board(BoardBase):
         """
         # TODO: Implement
         king = self.find_king(white)
+        
+        #???
+        if king is None:
+            print("Game over", white)
+            return None
 
         king_cell = (np.int64(king.cell[0]), np.int64(king.cell[1]))
         not_white = not white
@@ -312,10 +317,14 @@ class Board(BoardBase):
         score = 0.0
 
         for white_piece in self.iterate_cells_with_pieces(True):
-            score += white_piece.evaluate()
+            new_score = white_piece.evaluate()
+            #print("Bestandteil: Piece:", map_piece_to_character(white_piece), new_score)
+            score += new_score
 
         for black_piece in self.iterate_cells_with_pieces(False):
-            score -= black_piece.evaluate()
+            new_score = black_piece.evaluate()
+            #print("Bestandteil: Piece:", map_piece_to_character(black_piece), "-", new_score)
+            score -= new_score
 
         return score
 

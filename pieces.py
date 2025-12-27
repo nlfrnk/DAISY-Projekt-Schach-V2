@@ -1,22 +1,22 @@
 import numpy as np
 
-def map_piece_name(piece):
+def map_piece_score(piece):
     if piece is None:
         return "<empty>"
 
     c = None
     if isinstance(piece, Pawn):
-        c = "Pawn"
+        c = 1
     if isinstance(piece, Rook):
-        c = "Rook"
+        c = 5
     if isinstance(piece, Knight):
-        c = "Knight"
+        c = 3
     if isinstance(piece, Bishop):
-        c = "Bishop"
+        c = 3
     if isinstance(piece, Queen):
-        c = "Queen"
+        c = 9
     if isinstance(piece, King):
-        c = "King"
+        c = 1000
 
     return c
 
@@ -83,25 +83,29 @@ class Piece:
         # TODO: Implement
         score = 0.0
 
-        pieces_score = {
-           "Pawn": 1,
-           "Rook": 5,
-           "Knight": 3,
-           "Bishop": 3,
-           "Queen": 9,
-           "King": 100000
-        }
+        #Wie viel die Figuren wert sind
+        score += map_piece_score(self)
 
-        for piece in self.board.iterate_cells_with_pieces(self.white):
-            piece_full_name = map_piece_name(piece)
-            score += pieces_score[piece_full_name]
+        valid_cells = self.get_valid_cells()
 
-            reachable_cells = piece.get_reachable_cells()
-            score += len(reachable_cells) / 4
+        if not isinstance(self, King):
 
-            for cell in reachable_cells:
+            score += len(valid_cells) / 25
+
+            for cell in valid_cells:
+
                 if self.board.piece_can_hit_on_cell(self, cell):
-                    score += 0.5
+
+                    score_piece_hit = map_piece_score(self.board.get_cell(cell))
+                    
+                    if isinstance(self.board.get_cell(cell), King):
+                        score += 0.25
+                    else:
+                        score += score_piece_hit/20
+        
+        else:
+            pass
+
 
         return score
 
@@ -142,25 +146,19 @@ class Piece:
 
             self.board.set_cell(cell, self)
 
-            
-
             king_checked = self.board.is_king_check(self.white)
 
             if not king_checked:
                 valid_cells.append(cell)
             
-
             self.board.set_cell(original_cell, self)
 
             if piece_hit is not None:
                 self.board.set_cell(piece_hit.cell, piece_hit)
             
             piece_hit = None
-
-
-
         return valid_cells
-    
+
     def get_reachable_cells(self, directions):
         
         reachable_cells = []
@@ -183,7 +181,6 @@ class Piece:
                 new_cell = (new_row, new_col)
 
         return reachable_cells
-    
 
 class Pawn(Piece):  # Bauer
     def __init__(self, board, white):
@@ -263,7 +260,7 @@ class Rook(Piece):  # Turm
         :return: A list of reachable cells this rook could move into.
         """
         # TODO: Implement a method that returns all cells this piece can enter in its next move
-        directions = [(-1, 0), (0, -1), (-1, 0), (0, 1), (1, 0)]
+        directions = [(-1, 0), (0, -1), (0, 1), (1, 0)]
         return super().get_reachable_cells(directions)
     
 
