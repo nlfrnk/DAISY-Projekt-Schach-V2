@@ -107,7 +107,7 @@ def evaluate_all_possible_moves(board, minMaxArg, maximumNumberOfMoves = 10):
 
             board.set_cell(cell, piece)
             
-            print("Move: Piece:", piece, "Cell:", cell)
+            #print("Move: Piece:", piece, "Cell:", cell)
 
             score = board.evaluate()
 
@@ -123,7 +123,7 @@ def evaluate_all_possible_moves(board, minMaxArg, maximumNumberOfMoves = 10):
 
     max_moves = moves[:maximumNumberOfMoves]
     
-    print([[map_piece_to_character(x.piece), int(x.cell[0]), int(x.cell[1]), x.score, x.piece.can_hit_on_cell(x.cell)] for x in max_moves])
+    #print([[map_piece_to_character(x.piece), int(x.cell[0]), int(x.cell[1]), x.score, x.piece.can_hit_on_cell(x.cell)] for x in max_moves])
     return max_moves
 
 def minMax(board, minMaxArg):

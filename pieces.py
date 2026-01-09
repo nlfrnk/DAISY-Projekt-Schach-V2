@@ -341,7 +341,7 @@ class Queen(Piece):  # Königin
         :return: A list of reachable cells this queen could move into.
         """
         # TODO: Implement a method that returns all cells this piece can enter in its next move
-        directions = [(-1, -1), (-1, 1), (1, -1), (1, 1), (-1, 0), (0, -1), (-1, 0), (0, 1), (1, 0)]
+        directions = [(-1, -1), (-1, 1), (1, -1), (1, 1), (-1, 0), (0, -1), (0, 1), (1, 0)]
         return super().get_reachable_cells(directions)
 
 class King(Piece):  # König
