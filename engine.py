@@ -1,6 +1,7 @@
 import random
 from tqdm import tqdm
 from util import map_piece_to_character, cell_to_string
+from pieces import Pawn, Knight, Bishop, Rook, Queen, King
 
 
 DEPTH = 3
@@ -95,6 +96,42 @@ def evaluate_all_possible_moves(board, minMaxArg, maximumNumberOfMoves = 10):
     """
     # TODO: Implement the method according to the above description
 
+    poss_moves_with_scores = []
+    target_cell = None
+
+    for piece in board.iterate_cells_with_pieces(minMaxArg.playAsWhite):
+        original_cell = piece.cell
+
+        poss_moves = piece.get_valid_cells()
+
+        for move in poss_moves:
+            new_cell = board.set_cell(move, piece)
+
+            if piece.board.piece_can_hit_on_cell(move, new_cell):
+                target_cell = move
+
+            score = board.evaluate()
+
+            official_move = Move(piece, move, score)
+
+            poss_moves_with_scores.append([official_move])
+            print(official_move)
+            print(poss_moves_with_scores)
+
+            board.set_cell(original_cell, piece)
+
+            if target_cell is not None:
+                board.set_cell(target_cell.cell, target_cell)
+            piece_hit = None
+
+    if minMaxArg.playAsWhite is True:
+        for k in range(len(poss_moves_with_scores)):
+            poss_moves_with_scores.sort(key=lambda x : x[2],reverse = True)
+    if minMaxArg.playAsWhite is False:
+        for k in range(len(poss_moves_with_scores)):
+            poss_moves_with_scores.sort(key=lambda x : x[2],reverse = False)
+
+    return poss_moves_with_scores[:maximumNumberOfMoves]
 
 def minMax(board, minMaxArg):
     """
@@ -164,6 +201,32 @@ def minMax(board, minMaxArg):
     """
     # TODO: Implement the Mini-Max algorithm
 
+    score = 0 #verbessern!
+
+    if minMaxArg.depth == 1:
+        list_moves = evaluate_all_possible_moves()
+
+        if list_moves == []:
+            score = -1000
+            return score
+
+        else:
+            board.set_cell[list_moves[0]]
+            return list_moves[0]
+
+    if minMaxArg.depth > 1:
+        list_moves = evaluate_all_possible_moves()
+
+        if list_moves == []:
+            score = -1000
+            return score
+
+        else:
+            board.set_cell(list_moves[0])
+            minMax(minMaxArg.next())
+
+            return list_moves[0]
+
 
 def suggest_random_move(board):
     """
@@ -180,6 +243,20 @@ def suggest_random_move(board):
     """
     # TODO: Implement a valid random move
 
+    list_pieces = []
+
+    for piece in board.iterate_cells_with_pieces(MinMaxArg.playAsWhite):
+        list_pieces.append(piece)
+
+    ran_piece = random.choice(list_pieces)
+
+    val_cells_of_ran_piece = ran_piece.pieces.get_valid_cells
+
+    ran_move = random.choice(val_cells_of_ran_piece)
+
+    board.set_cell(ran_move, ran_piece)
+
+    return ran_move
 
 
 def suggest_move(board):
