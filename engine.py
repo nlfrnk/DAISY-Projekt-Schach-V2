@@ -98,7 +98,7 @@ def evaluate_all_possible_moves(board, minMaxArg, maximumNumberOfMoves = 10):
 
     poss_moves_with_scores = []
     target_cell = None
-
+    
     for piece in board.iterate_cells_with_pieces(minMaxArg.playAsWhite):
         original_cell = piece.cell
 
@@ -112,24 +112,22 @@ def evaluate_all_possible_moves(board, minMaxArg, maximumNumberOfMoves = 10):
 
             score = board.evaluate()
 
-            official_move = Move(piece, move, score)
-
-            poss_moves_with_scores.append([official_move])
-            print(official_move)
-            print(poss_moves_with_scores)
+            poss_moves_with_scores.append(Move(piece, move, score))
 
             board.set_cell(original_cell, piece)
 
             if target_cell is not None:
                 board.set_cell(target_cell.cell, target_cell)
-            piece_hit = None
+            target_cell = None
 
-    if minMaxArg.playAsWhite is True:
-        poss_moves_with_scores.sort(key=lambda x : x.score,reverse = True)
-    if minMaxArg.playAsWhite is False:
-        poss_moves_with_scores.sort(key=lambda x : x.score,reverse = False)
+    poss_moves_with_scores.sort(key=lambda x : x.score, reverse = minMaxArg.playAsWhite)
 
-    return poss_moves_with_scores[:maximumNumberOfMoves]
+    top_ten_moves = poss_moves_with_scores[:maximumNumberOfMoves]
+    #print(top_ten_moves)
+    #print(top_ten_moves[0])
+
+    return top_ten_moves
+
 
 def minMax(board, minMaxArg):
     """
