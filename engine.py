@@ -125,11 +125,9 @@ def evaluate_all_possible_moves(board, minMaxArg, maximumNumberOfMoves = 10):
             piece_hit = None
 
     if minMaxArg.playAsWhite is True:
-        for k in range(len(poss_moves_with_scores)):
-            poss_moves_with_scores.sort(key=lambda x : x[2],reverse = True)
+        poss_moves_with_scores.sort(key=lambda x : x.score,reverse = True)
     if minMaxArg.playAsWhite is False:
-        for k in range(len(poss_moves_with_scores)):
-            poss_moves_with_scores.sort(key=lambda x : x[2],reverse = False)
+        poss_moves_with_scores.sort(key=lambda x : x.score,reverse = False)
 
     return poss_moves_with_scores[:maximumNumberOfMoves]
 
