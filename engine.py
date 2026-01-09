@@ -98,39 +98,30 @@ def evaluate_all_possible_moves(board, minMaxArg, maximumNumberOfMoves = 10):
 
     poss_moves_with_scores = []
     target_cell = None
-    
+
     for piece in board.iterate_cells_with_pieces(minMaxArg.playAsWhite):
         original_cell = piece.cell
 
         poss_moves = piece.get_valid_cells()
 
         for move in poss_moves:
-            new_cell = board.set_cell(move, piece)
+            target_cell = board.get_cell(move)
 
-            if piece.board.piece_can_hit_on_cell(move, new_cell):
-                target_cell = move
-
+            board.set_cell(move, piece)
+            
             score = board.evaluate()
-
             poss_moves_with_scores.append(Move(piece, move, score))
 
             board.set_cell(original_cell, piece)
 
             if target_cell is not None:
-                board.set_cell(target_cell.cell, target_cell)
+                board.set_cell(move, target_cell)
             target_cell = None
 
-    #poss_moves_with_scores.sort(key=lambda x : x.score, reverse = minMaxArg.playAsWhite)
-    if minMaxArg.playAsWhite is True:
-        poss_moves_with_scores.sort(key=lambda x : x.score, reverse = True)
-    else:
-        poss_moves_with_scores.sort(key=lambda x : x.score, reverse = False)
 
-    top_ten_moves = poss_moves_with_scores[:maximumNumberOfMoves]
-    #print(top_ten_moves)
-    #print(top_ten_moves[0])
-
-    return top_ten_moves
+    poss_moves_with_scores.sort(key=lambda x : x.score, reverse = minMaxArg.playAsWhite)
+    
+    return poss_moves_with_scores[:maximumNumberOfMoves]
 
 
 def minMax(board, minMaxArg):
@@ -201,7 +192,7 @@ def minMax(board, minMaxArg):
     """
     # TODO: Implement the Mini-Max algorithm
 
-    score = 0 #verbessern!
+    score = 0 
 
     if minMaxArg.depth == 1:
         list_moves = evaluate_all_possible_moves()
@@ -211,7 +202,7 @@ def minMax(board, minMaxArg):
             return score
 
         else:
-            board.set_cell[list_moves[0]]
+            board.set_cell(list_moves[0])
             return list_moves[0]
 
     if minMaxArg.depth > 1:
@@ -248,13 +239,17 @@ def suggest_random_move(board):
     for piece in board.iterate_cells_with_pieces(MinMaxArg.playAsWhite):
         list_pieces.append(piece)
 
-    ran_piece = random.choice(list_pieces)
 
-    val_cells_of_ran_piece = ran_piece.pieces.get_valid_cells
+    for ran_piece in random.choice(list_pieces):
 
-    ran_move = random.choice(val_cells_of_ran_piece)
+        val_cells_of_ran_piece = ran_piece.pieces.get_valid_cells
 
-    board.set_cell(ran_move, ran_piece)
+        if val_cells_of_ran_piece != []:
+            ran_cell = random.choice(val_cells_of_ran_piece)
+
+            ran_move = Move(ran_piece, ran_cell, None)
+
+    board.set_cell(ran_cell, ran_piece)
 
     return ran_move
 
