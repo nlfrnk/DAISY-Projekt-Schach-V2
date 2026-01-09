@@ -120,7 +120,11 @@ def evaluate_all_possible_moves(board, minMaxArg, maximumNumberOfMoves = 10):
                 board.set_cell(target_cell.cell, target_cell)
             target_cell = None
 
-    poss_moves_with_scores.sort(key=lambda x : x.score, reverse = minMaxArg.playAsWhite)
+    #poss_moves_with_scores.sort(key=lambda x : x.score, reverse = minMaxArg.playAsWhite)
+    if minMaxArg.playAsWhite is True:
+        poss_moves_with_scores.sort(key=lambda x : x.score, reverse = True)
+    else:
+        poss_moves_with_scores.sort(key=lambda x : x.score, reverse = False)
 
     top_ten_moves = poss_moves_with_scores[:maximumNumberOfMoves]
     #print(top_ten_moves)
