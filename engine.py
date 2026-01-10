@@ -195,26 +195,38 @@ def minMax(board, minMaxArg):
     score = 0 
 
     if minMaxArg.depth == 1:
-        list_moves = evaluate_all_possible_moves()
+        list_moves = evaluate_all_possible_moves(board, minMaxArg)
 
         if list_moves == []:
             score = -1000
             return score
 
         else:
-            board.set_cell(list_moves[0])
+            #board.set_cell(list_moves[0])
             return list_moves[0]
 
     if minMaxArg.depth > 1:
-        list_moves = evaluate_all_possible_moves()
+        list_moves = evaluate_all_possible_moves(board, minMaxArg)
 
         if list_moves == []:
             score = -1000
             return score
 
         else:
-            board.set_cell(list_moves[0])
-            minMax(minMaxArg.next())
+            for move in list_moves:
+                new_cell = move.piece.cell
+                target_cell = board.get_cell(move.cell)
+
+                board.set_cell(move.cell, move.piece)
+
+                top_move = minMax_cached(board, minMaxArg.next())
+                move.score = top_move.score
+
+                board.set_cell(new_cell, move.piece)
+                board.set_cell(move.cell, target_cell)
+
+
+            list_moves.sort(key=lambda x : x.score, reverse = minMaxArg.playAsWhite)
 
             return list_moves[0]
 
@@ -236,22 +248,22 @@ def suggest_random_move(board):
 
     list_pieces = []
 
-    for piece in board.iterate_cells_with_pieces(MinMaxArg.playAsWhite):
+    for piece in board.iterate_cells_with_pieces(True):
         list_pieces.append(piece)
 
 
-    for ran_piece in random.choice(list_pieces):
+    for piece in list_pieces:
+        ran_piece = random.choice(list_pieces)
 
-        val_cells_of_ran_piece = ran_piece.pieces.get_valid_cells
+        val_cells_of_ran_piece = ran_piece.get_valid_cells()
 
         if val_cells_of_ran_piece != []:
             ran_cell = random.choice(val_cells_of_ran_piece)
+            ran_move = Move(ran_piece, ran_cell, 0)
 
-            ran_move = Move(ran_piece, ran_cell, None)
-
-    board.set_cell(ran_cell, ran_piece)
-
-    return ran_move
+            return ran_move
+        
+    return None #!: manchmal Error -> NoneType piece zerstört den Code
 
 
 def suggest_move(board):
