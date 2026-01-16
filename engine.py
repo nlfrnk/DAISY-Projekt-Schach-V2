@@ -95,6 +95,29 @@ def evaluate_all_possible_moves(board, minMaxArg, maximumNumberOfMoves = 10):
     """
     # TODO: Implement the method according to the above description
 
+    all_possible_moves = []
+
+    for piece in board.iterate_cells_with_pieces(minMaxArg.playAsWhite):
+        original_cell = piece.cell
+        valid_cells = piece.get_valid_cells()
+
+        for cell in valid_cells:
+            hit_piece = board.get_cell(cell)
+            board.set_cell(cell, piece)
+
+            score = board.evaluate()
+
+            all_possible_moves.append(Move(piece, cell, score))
+
+            board.set_cell(original_cell, piece)
+            board.set_cell(cell, hit_piece)
+        
+    all_possible_moves.sort(key=lambda x: x.score, reverse = minMaxArg.playAsWhite)
+
+    max_moves = all_possible_moves[:maximumNumberOfMoves]
+
+    return max_moves
+
 
 def minMax(board, minMaxArg):
     """
@@ -163,6 +186,36 @@ def minMax(board, minMaxArg):
     :rtype: :py:class:`Move`
     """
     # TODO: Implement the Mini-Max algorithm
+
+    evaluated_moves = evaluate_all_possible_moves(board, minMaxArg)
+    score = 0.0
+
+    if len(evaluated_moves) is 0:
+        if minMaxArg.playAsWhite is True:
+            score = 100000
+        else:
+            score = -100000
+        
+        return Move(None, None, score)
+
+    if minMaxArg.depth > 1:
+        for move in evaluated_moves:
+            current_cell = move.piece.cell
+            hit_piece = board.get_cell(move.cell)
+
+            board.set_cell(move.cell, move.piece)
+
+            best_move = minMax_cached(board, minMaxArg.next())
+
+            move.score = best_move.score
+            
+            board.set_cell(current_cell, move.piece)
+            board.set_cell(move.cell, hit_piece)
+
+        evaluated_moves.sort(key=lambda x: x.score, reverse = minMaxArg.playAsWhite)
+
+        return evaluated_moves[0]
+
 
 
 def suggest_random_move(board):

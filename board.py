@@ -288,7 +288,7 @@ class Board(BoardBase):
         
         #???
         if king is None:
-            print("Game over", white)
+            #print("Game over", white)
             return None
 
         king_cell = (np.int64(king.cell[0]), np.int64(king.cell[1]))
