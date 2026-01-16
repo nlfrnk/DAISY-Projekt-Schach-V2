@@ -195,15 +195,10 @@ def minMax(board, minMaxArg):
     
     # TODO: Implement the Mini-Max algorithm
 
-    #Best 10 evaluated moves for current color
     evaluated_moves = evaluate_all_possible_moves(board, minMaxArg)
     score = 0.0
 
-    #No possible moves left
     if len(evaluated_moves) is 0:
-
-        game_over = True
-
         if minMaxArg.playAsWhite is True:
             score = 100000
         else:
@@ -228,14 +223,10 @@ def minMax(board, minMaxArg):
             board.set_cell(current_cell, move.piece)
             board.set_cell(move.cell, hit_piece)
 
+        evaluated_moves.sort(key=lambda x: x.score, reverse = minMaxArg.playAsWhite)
 
+        return evaluated_moves[0]
 
-        if minMaxArg.playAsWhite:
-            evaluated_moves.sort(key=lambda x: x.score, reverse=True)
-        else:
-            evaluated_moves.sort(key=lambda x: x.score, reverse=False)
-        
-    return evaluated_moves[0]
 
 
 def suggest_random_move(board):

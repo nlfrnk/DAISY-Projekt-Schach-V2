@@ -38,6 +38,8 @@ class Piece:
         self.white = white
         self.cell = None
 
+    
+
 
 
     def is_white(self):
@@ -80,6 +82,7 @@ class Piece:
         
         :return: Return numerical score between -infinity and +infinity. Greater values indicate better evaluation result (more favorable).
         """
+        
         # TODO: Implement
         score = 0.0
 
@@ -181,6 +184,8 @@ class Piece:
                 new_cell = (new_row, new_col)
 
         return reachable_cells
+    
+
 
 class Pawn(Piece):  # Bauer
     def __init__(self, board, white):
