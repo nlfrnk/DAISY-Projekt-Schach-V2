@@ -196,13 +196,16 @@ def minMax(board, minMaxArg):
     # TODO: Implement the Mini-Max algorithm
 
     evaluated_moves = evaluate_all_possible_moves(board, minMaxArg)
+    #print(evaluated_moves)
     score = 0.0
 
-    if len(evaluated_moves) is 0:
+    if len(evaluated_moves) == 0:
         if minMaxArg.playAsWhite is True:
             score = 100000
+            print("Game over: Weiß hat gewonnen")
         else:
             score = -100000
+            print("Game over: Schwarz hat gewonnen")
         
         return Move(None, None, score)
 
@@ -224,8 +227,35 @@ def minMax(board, minMaxArg):
             board.set_cell(move.cell, hit_piece)
 
         evaluated_moves.sort(key=lambda x: x.score, reverse = minMaxArg.playAsWhite)
+        
+    if minMaxArg.depth == 1:
+        move = evaluated_moves[0]
+        current_cell = move.piece.cell
+        hit_piece = board.get_cell(move.cell)
 
-        return evaluated_moves[0]
+        board.set_cell(move.cell, move.piece)
+
+        possible_moves = []
+
+        for piece in board.iterate_cells_with_pieces(minMaxArg.playAsWhite):
+            possible_moves.append(piece.get_valid_cells())
+            if len(possible_moves) > 5:
+                print(possible_moves)
+                exit
+        for piece in board.iterate_cells_with_pieces(not minMaxArg.playAsWhite):
+            possible_moves.append(piece.get_valid_cells())
+            if len(possible_moves) > 5:
+                print(possible_moves)
+                exit
+
+
+        
+        board.set_cell(current_cell, move.piece)
+        board.set_cell(move.cell, hit_piece)
+
+
+
+    return evaluated_moves[0]
 
 
 

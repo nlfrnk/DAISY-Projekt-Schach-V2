@@ -38,10 +38,6 @@ class Piece:
         self.white = white
         self.cell = None
 
-    
-
-
-
     def is_white(self):
         """
         Returns whether this piece is white
