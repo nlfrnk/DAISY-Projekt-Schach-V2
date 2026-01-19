@@ -1,7 +1,9 @@
 import pygame
 import numpy as np
 from pieces import Piece, Pawn, Rook, Bishop, Queen, King, Knight
-from engine import suggest_move, suggest_random_move
+from engine import suggest_move, suggest_random_move,game_state
+import time 
+
 
 
 class UIState:
@@ -79,8 +81,19 @@ def map_piece_to_sprite_tag(piece):
 
     return c + "_BLACK"
 
+def draw_check_highlight(screen, row, col):
+    # soft red glow
+    glow = pygame.Surface((100, 100), pygame.SRCALPHA)
+    glow.fill((220, 50, 50, 80))   # soft red with alpha
 
-def draw_checker_pattern(screen, uiState):
+    x = col * 100
+    y = 700 - row * 100
+
+    screen.blit(glow, (x, y))
+    pygame.draw.rect(screen, (180, 30, 30), (x, y, 100, 100), 2)
+
+
+def draw_checker_pattern(screen, uiState,board):
     COLOR_WHITE = (240, 220, 190)
     COLOR_BLACK = (160, 110, 95)
 
@@ -110,6 +123,15 @@ def draw_checker_pattern(screen, uiState):
             y = 700 - row * 100 + 50
             pygame.draw.circle(screen, (196, 196, 196), (x, y), 35)
 
+    for is_white in (True, False):
+        if board.is_king_check(is_white):
+            king = board.find_king(is_white)
+            row, col = king.cell
+            draw_check_highlight(screen, row, col)
+
+        
+
+
     # Highlight cell if any
     if uiState.dragging:
         row, col = uiState.selected_cell
@@ -133,6 +155,8 @@ def draw_checker_pattern(screen, uiState):
             yTo = 700 - row * 100 + 50
             pygame.draw.line(screen, (255, 0, 0), (xFrom, yFrom), (xTo, yTo), 3)
 
+    
+    
 
 def draw_board(screen, sprites, board):
     for row in range(8):
@@ -159,6 +183,19 @@ def get_cell_under_mouse(uiState):
     return uiState
 
 
+
+def draw_text(screen,text, font, text_col, x, y):
+  img = font.render(text, True, text_col)
+  screen.blit(img, (x, y))
+
+def draw_end_text(screen, text, width, height):
+    font = pygame.font.SysFont("arial", 72, bold=True)
+    text_surface = font.render(text, True, (220, 20, 20))
+    rect = text_surface.get_rect(center=(width // 2, height // 2))
+    screen.blit(text_surface, rect)
+
+
+
 def run_game(board, manual=False):
     # Initialize Pygame
     pygame.init()
@@ -176,30 +213,46 @@ def run_game(board, manual=False):
 
     nextMove = None
     whitesTurn = True
+    
+    mode="playing"
+    font_big = pygame.font.Font(None, 80)
+    font_small = pygame.font.Font(None, 32)
+
+    game_over = False
+    result = None
 
     while running:
-        if nextMove is None and not manual:
+        if nextMove is None and not manual :
+            #KI DENKZEIT
+            t0 = time.time()
             nextMove = suggest_move(board)
-            # nextMove = suggest_random_move(board)
+            print("AI took", time.time() - t0, "seconds")
+            #nextMove = suggest_random_move(board)
             #print("Next Move is ", nextMove)
             board.set_cell(nextMove.cell, nextMove.piece)
             uiState.score = nextMove.score
             displayScore = np.tanh(uiState.score / 8.0) * 4.0
             #print(f"Current Evaluation: {+displayScore:.2f}")
             whitesTurn = False
+            
+            #Check if the game is over after a move 
+            result=game_state(board,whitesTurn)
+            if result is not None and not game_over:
+                game_over = True
+                game_result = result
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pygame.MOUSEBUTTONDOWN and mode=="playing":
                 piece = board.get_cell(uiState.mouse_over_cell)
                 if piece and piece.white == whitesTurn:
                     uiState.dragging = True
                     uiState.valid_cells = piece.get_valid_cells()
                     uiState.selected_cell = uiState.mouse_over_cell
 
-            if event.type == pygame.MOUSEBUTTONUP and uiState.dragging:
+            if event.type == pygame.MOUSEBUTTONUP and uiState.dragging and mode=="playing":
                 uiState.dragging = False
 
                 if uiState.selected_cell != uiState.mouse_over_cell:
@@ -214,18 +267,58 @@ def run_game(board, manual=False):
                             print(piece)
 
                             piece.board.set_cell(uiState.mouse_over_cell, piece)
-
                             # eval = board.evaluate()
                             # print(f"White score: {eval:.4f}")
                             nextMove = None
                             whitesTurn = not whitesTurn
-
+                            #Check if the game is over after a move 
+                            result=game_state(board,whitesTurn)
+                            print(result)
+                            if result is not None and not game_over:
+                                game_over = True
+                                game_result = result
                 uiState.valid_cells = None
+            
+            #Game paused when pressing esc button 
+            if event.type ==pygame.KEYDOWN:
+                if event.key==pygame.K_ESCAPE:
+                    if mode=="playing":
+                        mode="paused"
+                        print("game paused")
+                    elif mode=="paused":
+                        mode="playing"
+                        print("game resumed")
+        
+        
 
-        draw_checker_pattern(screen, uiState)
+        draw_checker_pattern(screen, uiState,board)
         draw_board(screen, sprites, board)
-
         uiState = get_cell_under_mouse(uiState)
+
+        #Pausing and resuming the Game 
+        if mode=="paused" and not game_over:
+
+            overlay = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
+
+            overlay.fill((0, 0, 0, 160))
+            screen.blit(overlay, (0, 0))
+
+            title_surf=font_big.render("PAUSED", True, (255, 255, 255))
+            title_rect=title_surf.get_rect(center=(410, 320)) 
+            screen.blit(title_surf, title_rect)
+        
+        #Checkmate/Stalemate Symbol if the game is over 
+        if game_over:
+            overlay = pygame.Surface((800, 800))
+            overlay.set_alpha(255)
+            overlay.fill((0, 0, 0))
+            screen.blit(overlay, (0, 0))
+            if game_result == "checkmate":
+                draw_end_text(screen, "CHECKMATE", 800, 800)
+            elif game_result == "stalemate":
+                draw_end_text(screen, "STALEMATE", 800, 800)
+
+        pygame.display.flip()
 
         # Flip the display
         pygame.display.flip()

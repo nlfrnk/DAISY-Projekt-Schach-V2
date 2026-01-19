@@ -1,7 +1,7 @@
 import random
 from tqdm import tqdm
 from util import map_piece_to_character, cell_to_string
-
+import math
 
 DEPTH = 3
 
@@ -96,7 +96,7 @@ def evaluate_all_possible_moves(board, minMaxArg, maximumNumberOfMoves = 10):
 
     # TODO: Implement the method according to the above description
     moves = []
-
+    
     for piece in board.iterate_cells_with_pieces(minMaxArg.playAsWhite):
         valid_cells = piece.get_valid_cells()
 
@@ -105,6 +105,7 @@ def evaluate_all_possible_moves(board, minMaxArg, maximumNumberOfMoves = 10):
             current_cell = piece.cell
             hit_piece = board.get_cell(cell)
 
+            board.set_cell(current_cell,None)
             board.set_cell(cell, piece)
             
             #print("Move: Piece:", piece, "Cell:", cell)
@@ -115,7 +116,8 @@ def evaluate_all_possible_moves(board, minMaxArg, maximumNumberOfMoves = 10):
 
             board.set_cell(current_cell, piece)
             board.set_cell(cell, hit_piece)
-
+        
+    
     if minMaxArg.playAsWhite:
         moves.sort(key=lambda x: x.score, reverse=True)
     else:
@@ -198,34 +200,36 @@ def minMax(board, minMaxArg):
     evaluated_moves = evaluate_all_possible_moves(board, minMaxArg)
     score = 0.0
 
-    if len(evaluated_moves) is 0:
+    if len(evaluated_moves) == 0:
         if minMaxArg.playAsWhite is True:
-            score = 100000
-        else:
             score = -100000
+        else:
+            score =  100000
         
         return Move(None, None, score)
 
-
-    if minMaxArg.depth > 1:
-
-        for move in evaluated_moves:
-
-            current_cell = move.piece.cell
-            hit_piece = board.get_cell(move.cell)
-
-            board.set_cell(move.cell, move.piece)
-
-            best_move = minMax_cached(board, minMaxArg.next())
-
-            move.score = best_move.score
-            
-            board.set_cell(current_cell, move.piece)
-            board.set_cell(move.cell, hit_piece)
-
-        evaluated_moves.sort(key=lambda x: x.score, reverse = minMaxArg.playAsWhite)
-
+    if minMaxArg.depth==1:
         return evaluated_moves[0]
+
+    for move in evaluated_moves:
+
+        current_cell = move.piece.cell
+        hit_piece = board.get_cell(move.cell)
+
+        board.set_cell(current_cell,None)
+        board.set_cell(move.cell, move.piece)
+
+        best_move = minMax_cached(board, minMaxArg.next())
+
+        move.score = best_move.score
+            
+        board.set_cell(current_cell, move.piece)
+        board.set_cell(move.cell, hit_piece)
+
+
+    evaluated_moves.sort(key=lambda x: x.score, reverse = minMaxArg.playAsWhite)
+
+    return evaluated_moves[0]
 
 
 
@@ -296,3 +300,14 @@ def minMax_cached(board, minMaxArg):
     # Cache it for later
     eval_cache[hash] = bestMove
     return bestMove
+
+
+def game_state(board,turn):
+    moves=evaluate_all_possible_moves(board, MinMaxArg(playAsWhite=turn, depth=1),maximumNumberOfMoves = 10)
+    if len(moves)!=0  :
+        return None
+    
+    if board.is_king_check(turn):
+        return "checkmate"
+    else:
+        return "stalemate"
