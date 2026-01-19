@@ -240,12 +240,12 @@ def minMax(board, minMaxArg):
         for piece in board.iterate_cells_with_pieces(minMaxArg.playAsWhite):
             possible_moves.append(piece.get_valid_cells())
             if len(possible_moves) > 5:
-                print(possible_moves)
+                #print(possible_moves)
                 exit
         for piece in board.iterate_cells_with_pieces(not minMaxArg.playAsWhite):
             possible_moves.append(piece.get_valid_cells())
             if len(possible_moves) > 5:
-                print(possible_moves)
+                #print(possible_moves)
                 exit
 
 
